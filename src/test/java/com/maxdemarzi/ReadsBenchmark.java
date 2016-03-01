@@ -18,6 +18,7 @@ public class ReadsBenchmark {
 
     private GraphDatabaseService db;
     private static final Random rand = new Random();
+    String[] properties;
 
     @Param({"10000"})
     public int nodeCount;
@@ -29,6 +30,10 @@ public class ReadsBenchmark {
     public void prepare() throws IOException {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         populateDb(db);
+        properties = new String[propertyCount];
+        for ( int j = 0; j < propertyCount; j++) {
+         properties[j]= "prop" + j;
+        }
     }
 
     @TearDown
@@ -104,7 +109,23 @@ public class ReadsBenchmark {
             for (String property : node.getPropertyKeys()) {
                 props.put(property, node.getProperty(property));
             }
-            props = node.getAllProperties();
+            tx.success();
+        }
+        bh.consume(props);
+    }
+
+    @Benchmark
+    @Warmup(iterations = 10)
+    @Measurement(iterations = 5)
+    @Fork(value = 1, jvmArgsAppend = {"-Xms2048m", "-Xmx2048m"})
+    @Threads(4)
+    @BenchmarkMode(Mode.Throughput)
+    @OutputTimeUnit(TimeUnit.SECONDS)
+    public void measureRandomNodeReadSomeProperty(Blackhole bh) throws IOException {
+        Map<String, Object> props;
+        try (Transaction tx = db.beginTx()) {
+            Node node = db.getNodeById(rand.nextInt(nodeCount - 1));
+            props = node.getProperties(properties);
             tx.success();
         }
         bh.consume(props);
