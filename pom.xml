@@ -21,7 +21,8 @@
     </build>
 
     <properties>
-        <neo4j.version>2.3.2</neo4j.version>
+        <!-- <neo4j.version>2.1.8</neo4j.version> -->
+        <neo4j.version>2.3.3</neo4j.version>
         <jmh.version>1.11.3</jmh.version>
     </properties>
 
